@@ -33,11 +33,11 @@ namespace WebApi.Security.Jwt
 
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, jti));
 
-            var minutes = configuration.GetValue<int>("SecurityOptions:TokenMinutesAlive");
+            var minutes = configuration.GetValue<int>("Security:TimeAlive");
             DateTime expiration = DateTime.UtcNow;
             expiration = expiration.AddMilliseconds(minutes);
 
-            var secretKey = configuration.GetValue<string>("SecurityOptions:TokenSecretKey");
+            var secretKey = configuration.GetValue<string>("Security:SecretKey");
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = "Issuer",
@@ -59,7 +59,7 @@ namespace WebApi.Security.Jwt
         }
         public JwtSecurityToken ValidateJwtToken(string token)
         {
-            var secretKey = configuration.GetValue<string>("SecurityOptions:TokenSecretKey");
+            var secretKey = configuration.GetValue<string>("Security:SecretKey");
 
             TokenValidationParameters validationParameters = new TokenValidationParameters
             {

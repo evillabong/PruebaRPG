@@ -10,6 +10,7 @@ namespace Shared.WebMethods
     {
         PendingRequest,
         DeleteRequest,
-        ViewApprovedHistory
+        ViewApprovedHistory,
+        ApprovedRequest
     }
 }

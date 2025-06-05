@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Model.Entities
+namespace Shared.Result.Supervisor
 {
-    public class EmptyEntity
+    public class ApprovedRequestResult : BaseResult
     {
-        public int Id { get; set; }
     }
 }

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Model.Interfaces;
+using Model.Managers;
 using Shared.Param.Supervisor;
 using Shared.Param.User;
 using Shared.Result.Supervisor;
@@ -15,44 +17,27 @@ namespace WebApi.Controllers
     [ApiController]
     public class SupervisorController
     {
-        public IUserManager _userManager;
+        public ISupervisorManager _supervisorManager;
 
-        public SupervisorController(IUserManager userManager)
+        public SupervisorController(ISupervisorManager supervisorManager)
         {
-            _userManager = userManager;
+            _supervisorManager = supervisorManager;
         }
 
-        [Authorize(Roles = nameof(RoleType.Supervisor))]
-        [HttpPost(nameof(Shared.WebMethods.Supervisor.PendingRequest))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.Supervisor))]
+        [HttpGet(nameof(Shared.WebMethods.Supervisor.PendingRequest))]
         public async Task<PendingRequestResult> PendingRequest()
         {
-            var result = await _userManager.CreateRequest(
-                dto.Description,
-                dto.Amount,
-                dto.AwaitedAt,
-                dto.Comment);
+            var result = new PendingRequestResult();
+            var model = await _supervisorManager.PendingRequest();
 
-            return new CreateRequestResult
-            {
-                ResultCode = result.ResultCode,
-                Message = result.Message,
-            };
-        }
+            result.SetResult(model.ResultCode, model.Message);
 
-        [Authorize(Roles = nameof(RoleType.Supervisor))]
-        [HttpGet($"{nameof(Shared.WebMethods.User.MyRequests)}")]
-        public async Task<MyRequestResult> MyRequests()
-        {
-            var ret = new MyRequestResult();
-
-            var model = await _userManager.MyRequests();
-            ret.ResultCode = model.ResultCode;
-            ret.Message = model.Message;
             if (model.IsSuccess())
             {
                 if (model.Data.Count > 0)
                 {
-                    ret.Requests = model.Data.Select(p => new Shared.Base.RequestBase
+                    result.PendingRequest = model.Data.Select(p => new Shared.Base.RequestBase
                     {
                         Id = p.Id,
                         UserId = p.UserId,
@@ -67,7 +52,33 @@ namespace WebApi.Controllers
                     }).ToList();
                 }
             }
-            return ret;
+            return result;
         }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.Supervisor))]
+        [HttpPost($"{nameof(Shared.WebMethods.Supervisor.ApprovedRequest)}")]
+        public async Task<ApprovedRequestResult> ApprovedRequest([FromBody] ApprovedRequestParam param)
+        {
+            var result = new ApprovedRequestResult();
+
+            var model = await _supervisorManager.ApproveRequest(param.RequestId, param.Status, param.Amount, param.AwaitedAt, param.Comment);
+            result.SetResult(model.ResultCode, model.Message);
+
+            return result;
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.Supervisor))]
+        [HttpPost($"{nameof(Shared.WebMethods.Supervisor.DeleteRequest)}")]
+        public async Task<DeleteRequestResult> DeleteRequest([FromBody] DeleteRequestParam param)
+        {
+            var result = new DeleteRequestResult();
+
+            var model = await _supervisorManager.DeleteRequest(param.RequestId);
+            result.SetResult(model.ResultCode, model.Message);
+
+            return result;
+        }
+
+
     }
 }

@@ -18,9 +18,9 @@ namespace Model.Managers
     public class UserManager : IUserManager
     {
         DatabaseContext _dbContext;
-        ILogger _logger;
+        ILogger<UserManager> _logger;
         IUserContext _userContext;
-        public UserManager(DatabaseContext dbContext, ILogger logger, IUserContext userContext)
+        public UserManager(DatabaseContext dbContext, ILogger<UserManager> logger, IUserContext userContext)
         {
             _dbContext = dbContext;
             _logger = logger;

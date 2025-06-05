@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ namespace WebApi.Controllers
     [EnableCors(PolicyName = "CorsPolicy")]
     [Route("api/[controller]")]
     [ApiController]
+
     public class UserController : ControllerBase
     {
         public IUserManager _userManager;
@@ -22,7 +24,7 @@ namespace WebApi.Controllers
             _userManager = userManager;
         }
 
-        [Authorize(Roles = nameof(RoleType.User))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.User))]
         [HttpPost(nameof(Shared.WebMethods.User.CreateRequest))]
         public async Task<CreateRequestResult> CreateRequest([FromBody] CreateRequestParam param)
         {
@@ -39,7 +41,7 @@ namespace WebApi.Controllers
             };
         }
 
-        [Authorize(Roles = nameof(RoleType.User))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.User))]
         [HttpGet($"{nameof(Shared.WebMethods.User.MyRequests)}")]
         public async Task<MyRequestResult> MyRequests()
         {

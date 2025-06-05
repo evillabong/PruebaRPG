@@ -40,14 +40,15 @@ namespace WebApi.DependencyInjection
                     claims.Add(new Claim(ClaimTypes.Role, role.Role.Name!));
                 }
 
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Security:SecretKey"]!));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
+                var secretkey = _configuration["Security:SecretKey"]!;
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretkey));
+                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
+                int milliseconds = int.Parse(_configuration["Security:TimeAlive"]!);
                 var token = new JwtSecurityToken(
                     issuer: null,
                     audience: null,
                     claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(30),
+                    expires: DateTime.UtcNow.AddMilliseconds(milliseconds),
                     signingCredentials: creds
                 );
 

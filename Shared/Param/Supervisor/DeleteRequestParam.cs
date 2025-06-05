@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Model.Entities
+namespace Shared.Param.Supervisor
 {
-    public class EmptyEntity
+    public class DeleteRequestParam
     {
-        public int Id { get; set; }
+        public int RequestId { get; set; }
     }
 }

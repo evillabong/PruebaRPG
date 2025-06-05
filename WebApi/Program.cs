@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Model.Entities.Sql.DataBase;
+using Model.Interfaces;
+using Model.Managers;
 using Shared.Interfaces;
 using System.Reflection.Metadata;
 using System.Text;
@@ -14,6 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 IConfiguration configuration = builder.Configuration;
+IWebHostEnvironment _environment = builder.Environment;
 
 var jwtKey = configuration["Security:SecretKey"];
 
@@ -50,11 +53,25 @@ var connection_string = configuration.GetConnectionString("SqlServerConnectionSt
 builder.Services.AddDbContext<DatabaseContext>(options =>
 {
     options.UseSqlServer(connection_string);
-    //remover
-    options.EnableSensitiveDataLogging();
-    builder.Logging.AddConsole();
+    if (!_environment.IsProduction())
+    {
+        options.EnableSensitiveDataLogging();
+        builder.Logging
+        .AddConsole();
+    }
 
 });
+
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IJwtService, JwtService>((provider) => new JwtService(provider.GetService<IConfiguration>()!));
+builder.Services.AddScoped<IAuthenticationManager, AuthenticationManager>();
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContext, UserContext>();
+builder.Services.AddScoped<IUserManager, UserManager>();
+builder.Services.AddScoped<ISupervisorManager, SupervisorManager>();
+
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         .AddJwtBearer(options =>
@@ -81,10 +98,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                             };
 
                         });
-
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<IJwtService, JwtService>((provider) => new JwtService(provider.GetService<IConfiguration>()!));
-builder.Services.AddScoped<IAuthenticationManager, AuthenticationManager>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

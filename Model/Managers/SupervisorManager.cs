@@ -16,9 +16,9 @@ namespace Model.Managers
     public class SupervisorManager : ISupervisorManager
     {
         DatabaseContext _dbContext;
-        ILogger _logger;
+        ILogger<SupervisorManager> _logger;
         IUserContext _userContext;
-        public SupervisorManager(DatabaseContext dbContext, ILogger logger, IUserContext userContext)
+        public SupervisorManager(DatabaseContext dbContext, ILogger<SupervisorManager> logger, IUserContext userContext)
         {
             _dbContext = dbContext;
             _logger = logger;

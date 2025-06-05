@@ -9,6 +9,6 @@ namespace Shared.WebMethods
     public enum User
     {
         CreateRequest,
-        MyRequests
+        MyRequests,
     }
 }
