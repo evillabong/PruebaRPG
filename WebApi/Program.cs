@@ -73,10 +73,10 @@ builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<ISupervisorManager, SupervisorManager>();
 
 
+var secretKey = configuration["Security:SecretKey"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                         .AddJwtBearer(options =>
                         {
-                            var secretKey = configuration.GetValue<string>("Security:SecretKey")!;
                             options.TokenValidationParameters = new TokenValidationParameters
                             {
                                 ValidateIssuer = false,
@@ -87,22 +87,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                                 ClockSkew = TimeSpan.Zero,
                                 RequireExpirationTime = true,
                             };
-
-                            options.Events = new JwtBearerEvents
-                            {
-                                OnMessageReceived = JwtService.OnMessageReceived,
-                                OnTokenValidated = JwtService.OnTokenValidated,
-                                OnAuthenticationFailed = JwtService.OnAuthenticationFailed,
-                                OnChallenge = JwtService.OnChallenge,
-                                OnForbidden = JwtService.OnForbidden,
-                            };
-
                         });
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never;
 
     });

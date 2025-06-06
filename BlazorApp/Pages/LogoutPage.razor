@@ -1,0 +1,17 @@
+﻿@page "/logout"
+@using BlazorApp.Services
+@inject ILoginService loginService
+@inject NavigationManager navigation
+
+<h3>Cerrando sessión</h3>
+
+@code {
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await loginService.Logout();
+            navigation.NavigateTo("");
+        }
+    }
+}

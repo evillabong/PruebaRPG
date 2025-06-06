@@ -11,6 +11,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using WebApi.Interfaces;
+using WebApi.Security.Jwt;
 
 namespace WebApi.DependencyInjection
 {
@@ -18,10 +19,12 @@ namespace WebApi.DependencyInjection
     {
         IConfiguration _configuration;
         DatabaseContext _dbContext;
-        public AuthenticationManager(IConfiguration configuration, DatabaseContext dbContext)
+        IJwtService jwtService;
+        public AuthenticationManager(IConfiguration configuration, DatabaseContext dbContext, IJwtService jwtService)
         {
             _configuration = configuration;
             _dbContext = dbContext;
+            this.jwtService = jwtService;
         }
         public async Task<LoginResult> GetLoginAsync(LoginParam param)
         {
@@ -39,25 +42,13 @@ namespace WebApi.DependencyInjection
                 {
                     claims.Add(new Claim(ClaimTypes.Role, role.Role.Name!));
                 }
-
-                var secretkey = _configuration["Security:SecretKey"]!;
-                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretkey));
-                var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
-                int milliseconds = int.Parse(_configuration["Security:TimeAlive"]!);
-                var token = new JwtSecurityToken(
-                    issuer: null,
-                    audience: null,
-                    claims: claims,
-                    expires: DateTime.UtcNow.AddMilliseconds(milliseconds),
-                    signingCredentials: creds
-                );
-
-                var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+                var jwt = jwtService.CreateJwtToken(claims);
 
                 return new LoginResult
                 {
-                    Token = tokenString,
-                    ExpireAt = token.ValidTo
+                    Jti = jwt.Jti,
+                    Token = jwt.Token,
+                    ExpireAt = jwt.Expiration
                 };
             }
             else

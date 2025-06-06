@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Param;
 using Shared.Result;
@@ -8,6 +9,7 @@ using WebApi.Interfaces;
 
 namespace WebApi.Controllers
 {
+    [EnableCors(PolicyName = "CorsPolicy")]
     [Route("api/[controller]")]
     [ApiController]
     public class SecurityController : ControllerBase

@@ -1,0 +1,118 @@
+﻿@page "/pending-requests"
+@using BlazorApp.Services
+@using Shared.Base
+@using Shared.Param.Supervisor
+@using Shared.Result.Supervisor
+@inject IWebService webService
+@inject NavigationManager NavManager
+
+<h3>Solicitudes Pendientes</h3>
+
+@if (pendingRequests == null)
+{
+    <p><em>Cargando...</em></p>
+}
+else if (!pendingRequests.Any())
+{
+    <p>No hay solicitudes pendientes.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Fecha Esperada</th>
+                <th>Comentario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var req in pendingRequests)
+            {
+                <tr>
+                    <td>@req.Id</td>
+                    <td>@req.UserName</td>
+                    <td>@req.Description</td>
+                    <td>@req.Amount?.ToString("C")</td>
+                    <td>@req.AwaitedAt?.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <InputTextArea class="form-control" @bind-Value="req.Comment" />
+                    </td>
+                    <td>
+                        <button class="btn btn-success btn-sm me-1" @onclick="() => ProcessRequest(req, 1)">Aprobar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => ProcessRequest(req, 2)">Rechazar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">@message</div>
+}
+
+@code {
+    private List<RequestBase>? pendingRequests;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingRequests();
+    }
+
+    private async Task LoadPendingRequests()
+    {
+        try
+        {
+
+            var result = await webService.GetAsync<Shared.WebMethods.Supervisor, PendingRequestResult>(Shared.WebMethods.Supervisor.PendingRequest);
+
+            pendingRequests = result?.PendingRequest ?? new();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error al cargar solicitudes: {ex.Message}";
+        }
+    }
+
+    private async Task ProcessRequest(RequestBase request, int status)
+    {
+        if (status == 1 && request.Amount > 5000 && string.IsNullOrWhiteSpace(request.Comment))
+        {
+            message = $"Debe ingresar un comentario para aprobar montos mayores a $5000 (Solicitud ID: {request.Id})";
+            return;
+        }
+
+        var param = new ApprovedRequestParam
+        {
+            RequestId = request.Id,
+            Status = status,
+            Comment = request.Comment
+        };
+
+        try
+        {
+            var response = await webService.PostAsync<ApprovedRequestParam, Shared.WebMethods.Supervisor, ApprovedRequestResult>(Shared.WebMethods.Supervisor.ApprovedRequest, param);
+            if (response.IsSuccess())
+            {
+                message = status == 1 ? "Solicitud aprobada con éxito" : "Solicitud rechazada con éxito";
+                await LoadPendingRequests(); // Refrescar lista
+            }
+            else
+            {
+                message = $"Error: {response.Message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error al procesar la solicitud: {ex.Message}";
+        }
+    }
+
+}

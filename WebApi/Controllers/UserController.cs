@@ -24,8 +24,8 @@ namespace WebApi.Controllers
             _userManager = userManager;
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.User))]
         [HttpPost(nameof(Shared.WebMethods.User.CreateRequest))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.User))]
         public async Task<CreateRequestResult> CreateRequest([FromBody] CreateRequestParam param)
         {
             var result = await _userManager.CreateRequest(
@@ -41,8 +41,8 @@ namespace WebApi.Controllers
             };
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.User))]
         [HttpGet($"{nameof(Shared.WebMethods.User.MyRequests)}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.User))]
         public async Task<MyRequestResult> MyRequests()
         {
             var ret = new MyRequestResult();

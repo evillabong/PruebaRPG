@@ -55,19 +55,19 @@ namespace WebApi.Controllers
             return result;
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.Supervisor))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.Supervisor))]
         [HttpPost($"{nameof(Shared.WebMethods.Supervisor.ApprovedRequest)}")]
         public async Task<ApprovedRequestResult> ApprovedRequest([FromBody] ApprovedRequestParam param)
         {
             var result = new ApprovedRequestResult();
 
-            var model = await _supervisorManager.ApproveRequest(param.RequestId, param.Status, param.Amount, param.AwaitedAt, param.Comment);
+            var model = await _supervisorManager.ApproveRequest(param.RequestId, param.Status, param.Comment);
             result.SetResult(model.ResultCode, model.Message);
 
             return result;
         }
 
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = nameof(RoleType.Supervisor))]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.Supervisor))]
         [HttpPost($"{nameof(Shared.WebMethods.Supervisor.DeleteRequest)}")]
         public async Task<DeleteRequestResult> DeleteRequest([FromBody] DeleteRequestParam param)
         {
@@ -79,6 +79,31 @@ namespace WebApi.Controllers
             return result;
         }
 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = nameof(RoleType.Supervisor))]
+        [HttpGet($"{nameof(Shared.WebMethods.Supervisor.ViewApprovedHistory)}")]
+        public async Task<ViewApprovedHistoryResult> ViewApprovedHistory()
+        {
+            var result = new ViewApprovedHistoryResult();
 
+            var model = await _supervisorManager.ViewApprovedHistory();
+            result.SetResult(model.ResultCode, model.Message);
+            if (result.IsSuccess())
+            {
+                if (model.Data.Count > 0)
+                {
+                    result.Audits = model.Data.Select(p => new Shared.Base.AuditBase
+                    {
+                        Id = p.Id,
+                        Action = p.Action,
+                        Detail = p.Detail,
+                        UserId = p.UserId,
+                        Username = p.Username,
+                        CreatedAt = p.CreatedAt
+                    }).ToList();
+                }
+
+            }
+            return result;
+        }
     }
 }

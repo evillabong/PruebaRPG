@@ -1,4 +1,5 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using Shared.Types
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">BlazorApp</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -10,19 +11,49 @@
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="flex-column">
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
+            <AuthorizeView>
+                <Authorized>
+                    @if (context.IsInRole(RoleType.Supervisor))
+                    {
+                        <NavLink class="nav-link" href="pending-requests" Match="NavLinkMatch.All">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Solicitudes Pendientes
+                        </NavLink>
+
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="audit">
+                                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Auditoria
+                            </NavLink>
+                        </div>
+                    }
+
+                    @if (context.IsInRole(RoleType.User))
+                    {
+                        <NavLink class="nav-link" href="request" Match="NavLinkMatch.All">
+                            <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Solicitudes
+                        </NavLink>
+
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="create-request">
+                                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Crear Solicitud
+                            </NavLink>
+                        </div>
+                    }
+
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="logout">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Logout
+                        </NavLink>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="login">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Login
+                        </NavLink>
+                    </div>
+
+                </NotAuthorized>
+            </AuthorizeView>
         </div>
     </nav>
 </div>

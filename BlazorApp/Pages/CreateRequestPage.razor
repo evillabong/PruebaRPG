@@ -1,0 +1,72 @@
+﻿@page "/create-request"
+@using BlazorApp.Services
+@using Shared.Param.User
+@using Shared.Result.User
+@inject IWebService webService
+@inject NavigationManager Navigation
+
+<h3>Registrar Solicitud</h3>
+
+<EditForm Model="@request" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Descripción</label>
+        <InputText class="form-control" @bind-Value="request.Description" />
+    </div>
+
+    <div class="form-group">
+        <label>Monto</label>
+        <InputNumber class="form-control" @bind-Value="request.Amount" />
+    </div>
+
+    <div class="form-group">
+        <label>Fecha Esperada</label>
+        <InputDate class="form-control" @bind-Value="request.AwaitedAt" />
+    </div>
+
+    <div class="form-group">
+        <label>Comentario (opcional)</label>
+        <InputTextArea class="form-control" @bind-Value="request.Comment" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Registrar</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(resultMessage))
+{
+    <div class="alert alert-info mt-3">@resultMessage</div>
+}
+
+@code {
+    private CreateRequestParam request = new()
+    {
+        AwaitedAt = DateTime.Today.AddDays(1) 
+    };
+
+    private string? resultMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+
+            var response = await webService.PostAsync<CreateRequestParam, Shared.WebMethods.User, CreateRequestResult>(Shared.WebMethods.User.CreateRequest, request);
+
+            if (response.IsSuccess())
+            {
+                resultMessage = "Solicitud registrada correctamente.";
+                request = new() { AwaitedAt = DateTime.Today.AddDays(1) };
+            }
+            else
+            {                
+                resultMessage = $"Error al registrar la solicitud: {response.Message}";
+            }
+        }
+        catch (Exception ex)
+        {
+            resultMessage = $"Excepción: {ex.Message}";
+        }
+    }
+}

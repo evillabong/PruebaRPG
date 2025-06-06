@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Model.Entities.Sql.DataBase;
-using Shared.Types;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.Versioning;
 using System.Security.Claims;
 using System.Text;
+using Model.Extensions;
 using WebApi.Interfaces;
-using static Azure.Core.HttpHeader;
+using Shared.Types;
+using Model.Entities.Sql.DataBase;
 
 namespace WebApi.Security.Jwt
 {
@@ -33,15 +36,15 @@ namespace WebApi.Security.Jwt
 
             claims.Add(new Claim(JwtRegisteredClaimNames.Jti, jti));
 
-            var minutes = configuration.GetValue<int>("Security:TimeAlive");
+            var minutes = int.Parse(configuration["Security:MinutesTimeAlive"]!);
             DateTime expiration = DateTime.UtcNow;
-            expiration = expiration.AddMilliseconds(minutes);
+            expiration = expiration.AddMinutes(minutes);
 
-            var secretKey = configuration.GetValue<string>("Security:SecretKey");
+            var secretKey = configuration["Security:SecretKey"]!;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Issuer = "Issuer",
-                Audience = "Audience",
+                Issuer = null,
+                Audience = null,
                 Subject = new ClaimsIdentity(claims),
                 Expires = expiration,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!)), SecurityAlgorithms.HmacSha512),
@@ -59,7 +62,7 @@ namespace WebApi.Security.Jwt
         }
         public JwtSecurityToken ValidateJwtToken(string token)
         {
-            var secretKey = configuration.GetValue<string>("Security:SecretKey");
+            var secretKey = configuration["Security:SecretKey"]!;
 
             TokenValidationParameters validationParameters = new TokenValidationParameters
             {
@@ -77,54 +80,6 @@ namespace WebApi.Security.Jwt
                 return null!;
             }
             return jwtToken;
-        }
-        public static async Task OnTokenValidated(TokenValidatedContext context)
-        {
-            try
-            {
-                if (!(context.SecurityToken is JwtSecurityToken jwtToken && jwtToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha512, StringComparison.InvariantCultureIgnoreCase)))
-                {
-                    context.Fail(ResultType.SessionFail.ToString());
-                    await Task.CompletedTask;
-                    return;
-                }
-
-                var dbContext = context.HttpContext.RequestServices.GetService(typeof(DatabaseContext)) as DatabaseContext;
-                if (dbContext == null)
-                {
-                    context.Fail(ResultType.ContextFail.ToString());
-                    await Task.CompletedTask;
-                    return;
-                }
-
-            }
-            catch
-            {
-                context.Fail(ResultType.InternalError.ToString());
-            }
-            return;
-        }
-        public static Task OnMessageReceived(MessageReceivedContext context)
-        {
-            return Task.CompletedTask;
-        }
-        public static Task OnChallenge(JwtBearerChallengeContext arg)
-        {
-            if (arg.AuthenticateFailure is SecurityTokenExpiredException)
-            {
-                arg.Error = ResultType.SessionFail.ToString();
-                return Task.CompletedTask;
-            }
-            arg.Error = arg.AuthenticateFailure != null ? arg.AuthenticateFailure.Message : ResultType.SessionFail.ToString();
-            return Task.CompletedTask;
-        }
-        public static Task OnAuthenticationFailed(AuthenticationFailedContext arg)
-        {
-            return Task.CompletedTask;
-        }
-        public static Task OnForbidden(ForbiddenContext arg)
-        {
-            return Task.CompletedTask;
         }
     }
 }

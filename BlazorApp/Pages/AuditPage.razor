@@ -1,0 +1,110 @@
+﻿@page "/audit"
+@using BlazorApp.Services
+@using Shared.Base
+@using Shared.Result.Supervisor
+@inject IWebService webService
+
+<h3>Auditoría</h3>
+
+<div class="mb-3">
+    <label class="form-label">Filtrar por acción:</label>
+    <InputText class="form-control" @bind-Value="filterAction" @bind-Value:event="oninput" />
+</div>
+
+@if (auditsFiltrados == null)
+{
+    <p><em>Cargando historial...</em></p>
+}
+else if (!auditsFiltrados.Any())
+{
+    <p>No hay resultados que coincidan con el filtro.</p>
+}
+else
+{
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+                <th>Detalle</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var audit in auditsFiltrados)
+            {
+                <tr>
+                    <td>@audit.Username</td>
+                    <td>@audit.CreatedAt?.ToString("g")</td>
+                    <td>@audit.Action</td>
+                    <td>@audit.Detail</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info">@message</div>
+}
+
+@code {
+    private List<AuditBase>? audits;
+    private List<AuditBase>? auditsFiltrados;
+    private string? filterAction;
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistory();
+    }
+
+    private async Task LoadHistory()
+    {
+        try
+        {
+
+            var result = await webService.GetAsync<Shared.WebMethods.Supervisor, ViewApprovedHistoryResult>(Shared.WebMethods.Supervisor.ViewApprovedHistory);
+
+            if (result != null && result.ResultCode == 0 && result.Audits != null)
+            {
+                audits = result.Audits;
+                auditsFiltrados = audits;
+            }
+            else
+            {
+                message = "No se pudo obtener el historial.";
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    private void OnFilterChanged(ChangeEventArgs e)
+    {
+        filterAction = e.Value?.ToString();
+        Filtrar();
+    }
+
+    private void Filtrar()
+    {
+        if (string.IsNullOrWhiteSpace(filterAction))
+        {
+            auditsFiltrados = audits;
+        }
+        else
+        {
+            auditsFiltrados = audits?
+                .Where(a => a.Action?.Contains(filterAction, StringComparison.OrdinalIgnoreCase) == true)
+                .ToList();
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        Filtrar();
+    }
+}

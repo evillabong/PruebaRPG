@@ -28,20 +28,16 @@ namespace Model.Managers
         public async Task<ModelResult> ApproveRequest(
             int requestId,
             int status,
-            double amount,
-            DateTime awaitedAt,
             string? comment = null)
         {
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Update, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Update, 0);
                 var ret = await helper.ExecuteNonQueryAsync(new Dictionary<string, object?>
                 {
                     ["@Username"] = _userContext.GetUsername(),
                     ["@RequestId"] = requestId,
-                    ["@Amount"] = amount,
                     ["@Status"] = status,
-                    ["@AwaitedAt"] = awaitedAt,
                     ["@Comment"] = comment
                 });
 
@@ -62,7 +58,7 @@ namespace Model.Managers
         {
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Delete, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Delete, 0);
                 var ret = await helper.ExecuteNonQueryAsync(new Dictionary<string, object?>
                 {
                     ["@Username"] = _userContext.GetUsername(),
@@ -86,7 +82,7 @@ namespace Model.Managers
         {
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Read, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Read, 0);
                 var query = await helper.ExecuteAsync<Request>(new Dictionary<string, object?>
                 {
                     ["@Status"] = 0
@@ -108,10 +104,10 @@ namespace Model.Managers
         {
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Read, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Read, 2);
                 var query = await helper.ExecuteAsync<Audit>(new Dictionary<string, object?>
                 {
-                    ["@Username"] = _userContext.GetUsername()
+                    //["@Username"] = _userContext.GetUsername()
                 });
                 return query;
             }

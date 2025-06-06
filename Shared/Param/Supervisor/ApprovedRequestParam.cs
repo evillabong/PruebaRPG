@@ -6,12 +6,10 @@ using System.Threading.Tasks;
 
 namespace Shared.Param.Supervisor
 {
-    public class ApprovedRequestParam
+    public class ApprovedRequestParam : BaseParam
     {
         public int RequestId { get; set; }
         public int Status { get; set; }
-        public double Amount { get; set; }
-        public DateTime AwaitedAt { get; set; }
         public string? Comment { get; set; }
     }
 }

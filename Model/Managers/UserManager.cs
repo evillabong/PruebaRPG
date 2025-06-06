@@ -36,7 +36,7 @@ namespace Model.Managers
             var ret = new ModelResult();
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Create, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Create, 0);
                 await helper.ExecuteNonQueryAsync(new Dictionary<string, object?>
                 {
                     ["@Username"] = _userContext.GetUsername(),
@@ -61,7 +61,7 @@ namespace Model.Managers
         {
             try
             {
-                var helper = new ModelHelper(ProcedureType.RequestManager, OperationType.Read, 0);
+                var helper = new ModelHelper(_dbContext, ProcedureType.RequestManager, OperationType.Read, 0);
                 var query = await helper.ExecuteAsync<Request>(new Dictionary<string, object?>
                 {
                     ["@Username"] = _userContext.GetUsername()

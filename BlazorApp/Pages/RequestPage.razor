@@ -1,0 +1,80 @@
+﻿@page "/Request"
+@using BlazorApp.Services
+@using Shared.Base
+@using Shared.Result.User
+@inject IWebService webService
+@inject NavigationManager NavManager
+
+<h3>Mis Solicitudes</h3>
+
+@if (requests == null)
+{
+    <p><em>Cargando solicitudes...</em></p>
+}
+else if (!requests.Any())
+{
+    <p>No tienes solicitudes registradas.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Fecha Esperada</th>
+                <th>Estado</th>
+                <th>Comentario</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var req in requests)
+            {
+                <tr>
+                    <td>@req.Id</td>
+                    <td>@req.Description</td>
+                    <td>@req.Amount?.ToString("C")</td>
+                    <td>@req.AwaitedAt?.ToString("yyyy-MM-dd")</td>
+                    <td>@GetStatusLabel(req.Status)</td>
+                    <td>@req.Comment</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<RequestBase>? requests;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            var response = await webService.GetAsync<Shared.WebMethods.User, MyRequestResult>(Shared.WebMethods.User.MyRequests);
+
+            if (response.IsSuccess())
+            {
+                requests = response.Requests;
+            }
+            else
+            {
+                requests = new();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error al cargar solicitudes: {ex.Message}");
+            requests = new();
+        }
+    }
+
+    private string GetStatusLabel(int status) => status switch
+    {
+        0 => "Pendiente",
+        1 => "Aprobada",
+        2 => "Rechazada",
+        _ => "Desconocido"
+    };
+}

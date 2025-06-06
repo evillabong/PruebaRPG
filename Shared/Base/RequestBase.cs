@@ -17,7 +17,7 @@ namespace Shared.Base
 
         public decimal? Amount { get; set; }
 
-        public DateOnly? AwaitedAt { get; set; }
+        public DateTime? AwaitedAt { get; set; }
 
         public int Status { get; set; }
 

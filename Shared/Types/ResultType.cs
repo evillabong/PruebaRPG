@@ -15,6 +15,12 @@ namespace Shared.Types
         ContextFail = 100,
         UnknowError = 101,
         ClientError = 102,
-        Unauthorized = 103
+        Unauthorized = 103,
+        SERVER_INTERNAL_ERROR = 104,
+        SERVER_NOT_FOUND = 105,
+        SERVER_UNAUTHORIZED = 106,
+        SERVER_FORBIDDEN = 107,
+        SERVER_BAD_REQUEST = 108,
+        SERVER_FAIL = 109
     }
 }
